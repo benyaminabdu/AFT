@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Payment Processing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-container {
+            background: #ffffff;
+            border: 2px solid #000000;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            padding: 50px 40px;
+            text-align: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px;
+            background: #ffffff;
+            border: 2px solid #000000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .error-icon svg {
+            width: 60px;
+            height: 60px;
+            fill: #000000;
+        }
+
+        h1 {
+            color: #000000;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            background: #ffffff;
+            border: 2px solid #000000;
+            border-left: 4px solid #000000;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            color: #000000;
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: left;
+            word-wrap: break-word;
+        }
+
+        .error-message:empty {
+            display: none;
+        }
+
+        .error-code {
+            font-family: 'Courier New', monospace;
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: left;
+            overflow-x: auto;
+        }
+
+        .btn-home {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 14px 35px;
+            background: #ffffff;
+            color: #000000;
+            text-decoration: none;
+            border: 2px solid #000000;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-home:hover {
+            background: #000000;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-home:active {
+            transform: translateY(0);
+        }
+
+        .help-text {
+            color: #000000;
+            font-size: 14px;
+            margin-top: 25px;
+            line-height: 1.6;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 600px) {
+            .error-container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .error-icon {
+                width: 80px;
+                height: 80px;
+            }
+
+            .error-icon svg {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+        </div>
+        
+        <h1>Oops! Something Went Wrong</h1>
+        
+        {% if errorMessage %}
+            <div class="error-message">
+                <strong>Error Details:</strong><br>
+                {{ errorMessage }}
+            </div>
+        {% else %}
+            <div class="error-message">
+                <strong>Error Details:</strong><br>
+                An unexpected error occurred. Please try again later.
+            </div>
+        {% endif %}
+        
+        <div class="help-text">
+            If this problem persists, please contact support with the error details above.
+        </div>
+        
+        <a href="{{ base_url() }}" class="btn-home">Return to Home</a>
+    </div>
+</body>
+</html>
+
