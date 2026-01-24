@@ -13,8 +13,11 @@
 
             $payload = json_encode([
                 "targetOrigins" => [
-                    "https://localhost"
-                ]
+                    "http://localhost"
+                ],
+                "clientVersion" => "v2",
+                "allowedCardNetworks" => ["VISA", "MASTERCARD"],
+                "allowedPaymentTypes" => ["CARD"]
             ]);
 
             $merchantId = $_ENV['CYBERSOURCE_MERCHANT_ID'];
@@ -59,11 +62,42 @@
 
                 $httpCode = $response->getStatusCode();
                 $responseBody = $response->getBody()->getContents();
-
-                $data = array(
-                    'status' => 'success',
-                    'captureContext' => $responseBody
-                );
+                
+                $decodedResponse = json_decode($responseBody, true);
+                
+                if (is_array($decodedResponse) && isset($decodedResponse['key'])) {
+                    $jwtToken = $decodedResponse['key'];
+                } elseif (is_string($decodedResponse) && !empty($decodedResponse)) {
+                    $jwtToken = $decodedResponse;
+                } else {
+                    $jwtToken = $responseBody;
+                }
+                
+                $jwtParts = explode('.', $jwtToken);
+                if (count($jwtParts) === 3) {
+                    $payload = $jwtParts[1];
+                    $payload = str_replace(['-', '_'], ['+', '/'], $payload);
+                    $payload = str_pad($payload, strlen($payload) % 4, '=', STR_PAD_RIGHT);
+                    $decodedPayload = json_decode(base64_decode($payload), true);
+                    
+                    if ($decodedPayload !== null) {
+                        $data = array(
+                            'status' => 'success',
+                            'captureContext' => $decodedPayload,
+                            'jwtToken' => $jwtToken
+                        );
+                    } else {
+                        $data = array(
+                            'status' => 'error',
+                            'message' => 'Failed to decode JWT payload'
+                        );
+                    }
+                } else {
+                    $data = array(
+                        'status' => 'error',
+                        'message' => 'Invalid JWT token format received'
+                    );
+                }
 
                 return $data;
             } catch (RequestException $e) {

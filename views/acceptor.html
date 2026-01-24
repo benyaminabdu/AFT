@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Payment Acceptor</title>
+        <script src="{{ clientLibrary }}" integrity="{{ clientLibraryIntegrity }}" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        
+        <h1>Payment Acceptor</h1>
+        <div id="errors-output" role="alert"></div>
+        
+        <form action="{{ path_for('transientToken') }}" id="my-sample-form" method="post">
+            <input type="hidden" name="amount" value="{{ amount }}">
+            <input type="hidden" name="reference" value="{{ reference }}">
+            <div class="form-group">
+                <label for="cardholderName">Name</label>
+                <input id="cardholderName" class="form-control" name="cardholderName" placeholder="Name on the card">
+                <label id="cardNumber-label">Card Number</label>
+                <div id="number-container" class="form-control"></div>
+                <label for="securityCode-container">Security Code</label>
+                <div id="securityCode-container" class="form-control"></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="expMonth">Expiry month</label>
+                    <select id="expMonth" class="form-control">
+                        <option>01</option>
+                        <option>02</option>
+                        <option>03</option>
+                        <option>04</option>
+                        <option>05</option>
+                        <option>06</option>
+                        <option>07</option>
+                        <option>08</option>
+                        <option>09</option>
+                        <option>10</option>
+                        <option>11</option>
+                        <option>12</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="expYear">Expiry year</label>
+                    <select id="expYear" class="form-control">
+                        <option>2024</option>
+                        <option>2025</option>
+                        <option>2026</option>
+                        <option>2027</option>
+                        <option>2028</option>
+                        <option>2029</option>
+                        <option>2030</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="button" id="pay-button" class="btn btn-primary">Pay</button>
+            <input type="hidden" id="flexresponse" name="flexresponse">
+        </form>
+
+
+        <script>
+            // Capture context from server (JWT token string)
+            const captureContext = "{{ captureContext|e('js') }}";
+            
+            // Wait for Flex SDK to load
+            if (typeof Flex !== 'undefined') {
+                initializeMicroform();
+            } else {
+                // If script hasn't loaded yet, wait for it
+                window.addEventListener('load', function() {
+                    if (typeof Flex !== 'undefined') {
+                        initializeMicroform();
+                    } else {
+                        document.getElementById('errors-output').innerHTML = 
+                            '<div style="color: red;">Error: Flex SDK failed to load. Please refresh the page.</div>';
+                    }
+                });
+            }
+            
+            function initializeMicroform() {
+                try {
+                    // Create Flex instance with capture context
+                    const flex = new Flex(captureContext);
+                    
+                    // Define styles for the microform fields
+                    const myStyles = {
+                        'input': {
+                            'font-size': '14px',
+                            'font-family': 'helvetica, tahoma, calibri, arial, sans-serif',
+                            'color': '#333'
+                        },
+                        ':focus': {
+                            'color': '#333'
+                        },
+                        '.invalid': {
+                            'color': '#cc0000'
+                        },
+                        '.valid': {
+                            'color': '#00cc00'
+                        }
+                    };
+                    
+                    // Create microform instance for card payments
+                    const microform = flex.microform("card", { styles: myStyles });
+                    
+                    // Create and attach card number field
+                    const number = microform.createField('number', { 
+                        placeholder: 'Enter card number' 
+                    });
+                    number.load('#number-container');
+                    
+                    // Create and attach security code (CVN) field
+                    const securityCode = microform.createField('securityCode', { 
+                        placeholder: '•••' 
+                    });
+                    securityCode.load('#securityCode-container');
+                    
+                    // Handle form submission
+                    document.getElementById('pay-button').addEventListener('click', function() {
+                        handlePaymentSubmission(microform, number, securityCode);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error initializing microform:', error);
+                    document.getElementById('errors-output').innerHTML = 
+                        '<div style="color: red;">Error initializing payment form: ' + error.message + '</div>';
+                }
+            }
+            
+            function handlePaymentSubmission(microform, number, securityCode) {
+                const errorsOutput = document.getElementById('errors-output');
+                errorsOutput.innerHTML = '';
+                
+                // Get form values
+                const cardholderName = document.getElementById('cardholderName').value.trim();
+                const expMonthValue = document.getElementById('expMonth').value;
+                const expYearValue = document.getElementById('expYear').value;
+                
+                // Validate cardholder name
+                if (!cardholderName || cardholderName === '') {
+                    errorsOutput.innerHTML = '<div style="color: red;">Please enter the cardholder name.</div>';
+                    return;
+                }
+                
+                // Validate expiration month
+                const expMonthInt = parseInt(expMonthValue, 10);
+                if (!expMonthValue || isNaN(expMonthInt) || expMonthInt < 1 || expMonthInt > 12) {
+                    errorsOutput.innerHTML = '<div style="color: red;">Please select a valid expiration month.</div>';
+                    return;
+                }
+                // Format expiration month as 2-digit string: "01" to "12"
+                const expMonth = String(expMonthInt).padStart(2, '0');
+                
+                // Validate expiration year
+                const expYearInt = parseInt(expYearValue, 10);
+                if (!expYearValue || isNaN(expYearInt) || expYearInt < 2020) {
+                    errorsOutput.innerHTML = '<div style="color: red;">Please select a valid expiration year.</div>';
+                    return;
+                }
+                // Format expiration year as 4-digit string: "2024", "2025", etc.
+                const expYear = String(expYearInt);
+                
+                // Create tokenization options with proper formatting
+                const options = {
+                    expirationMonth: expMonth,  // Two-digit string: "01" to "12"
+                    expirationYear: expYear,    // Four-digit string: "2024", "2025", etc.
+                    cardholderName: cardholderName
+                };
+                
+                // Create transient token
+                microform.createToken(options, function(err, token) {
+                    if (err) {
+                        // Handle errors with detailed information
+                        let errorMessage = 'An error occurred while processing your payment.';
+                        if (err.message) {
+                            errorMessage = err.message;
+                        } else if (err.reason) {
+                            errorMessage = err.reason;
+                        }
+                        
+                        // Add details if available
+                        if (err.details && err.details.length > 0) {
+                            errorMessage += '<br><small>Details: ' + JSON.stringify(err.details) + '</small>';
+                        }
+                        
+                        errorsOutput.innerHTML = '<div style="color: red;">' + errorMessage + '</div>';
+                        console.error('Token creation error:', err);
+                        console.error('Token options used:', options);
+                        return;
+                    }
+                    
+                    // Success - token created
+                    console.log('Transient token created:', token);
+                    
+                    // Set the token in the hidden field
+                    document.getElementById('flexresponse').value = JSON.stringify(token);
+                    
+                    // Submit the form (you can also make an AJAX call here)
+                    document.getElementById('my-sample-form').submit();
+                });
+            }
+        </script>
+
+    </body>
+</html>
