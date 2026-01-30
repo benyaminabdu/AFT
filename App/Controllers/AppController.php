@@ -34,7 +34,7 @@
             }
             else {
                 $this->c->flash->addMessage('error', $captureContext['message']);
-                return $response->withRedirect($this->c->router->pathFor('errorPage'));
+                return $response->withRedirect($this->c->router->pathFor('errorPage' . "Capture Context Failed"));
             }
 
         }
@@ -92,13 +92,41 @@
                 ? $decodedPayload['content']['paymentInformation']['card']['expirationYear']['value'] 
                 : null;
             
-            echo "<h1>Token Processed Successfully</h1>";
-            echo "<p><strong>Amount:</strong> " . htmlspecialchars($amount) . "</p>";
-            echo "<p><strong>Reference:</strong> " . htmlspecialchars($reference) . "</p>";
-            echo "<p><strong>JTI:</strong> " . htmlspecialchars($jti) . "</p>";
-            echo "<p><strong>Masked Card Number:</strong> " . htmlspecialchars($maskedValue) . "</p>";
-            echo "<p><strong>Expiration Month:</strong> " . htmlspecialchars($expirationMonth) . "</p>";
-            echo "<p><strong>Expiration Year:</strong> " . htmlspecialchars($expirationYear) . "</p>";
+            $amount = htmlspecialchars($amount);
+            $reference = htmlspecialchars($reference);
+            $jti = htmlspecialchars($jti);
+            $maskedValue = htmlspecialchars($maskedValue);
+            $expirationMonth = htmlspecialchars($expirationMonth);
+            $expirationYear = htmlspecialchars($expirationYear);
+            
+            $cybersource = new Cybersource();
+            $PASetup = $cybersource->PASetup($amount, $reference, $jti, $maskedValue, $expirationMonth, $expirationYear);
+
+            if($PASetup['status'] == 'success'){
+                $res = $PASetup['response'];
+
+                $accessToken = $res['consumerAuthenticationInformation']['accessToken'] ?? null;
+                $deviceDataCollectionUrl = $res['consumerAuthenticationInformation']['deviceDataCollectionUrl'] ?? null;
+                $referenceId = $res['consumerAuthenticationInformation']['referenceId'] ?? null;
+
+                $data = [
+                    'amount' => $amount,
+                    'reference' => $reference,
+                    'jti' => $jti,
+                    'maskedValue' => $maskedValue,
+                    'expirationMonth' => $expirationMonth,
+                    'expirationYear' => $expirationYear,
+                    'accessToken' => $accessToken,
+                    'deviceDataCollectionUrl' => $deviceDataCollectionUrl,
+                    'referenceId' => $referenceId,
+                ];
+
+                return $this->c->view->render($response, 'dataCollection.html', $data);
+            }
+            else {
+                $this->c->flash->addMessage('error', $PASetup['message' . "PA Setup Failed"]);
+                return $response->withRedirect($this->c->router->pathFor('errorPage'));
+            }
             
         }
 

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Data Collection</title>
+    </head>
+    <body>
+    
+
+        <!-- iFrame Device Data Collection -->
+        <iframe id="cardinal_collection_iframe" name="collectionIframe" height="1" width="1" style="display: none;"></iframe>
+
+        <form 
+            id="cardinal_collection_form" 
+            method="POST" target="collectionIframe" 
+            action="{{ deviceDataCollectionUrl }}"
+        >
+            <input 
+                id="cardinal_collection_form_input" 
+                type="hidden" 
+                name="JWT" 
+                value="{{ accessToken }}"
+            >
+        </form>
+        
+        <script>
+            
+            window.onload = function() { 
+                var cardinalCollectionForm = document.querySelector('#cardinal_collection_form'); 
+                if(cardinalCollectionForm) // form exists 
+                cardinalCollectionForm.submit();
+            }
+
+            window.addEventListener("message", function(event) { 
+                if (event.origin === "https://centinelapistag.cardinalcommerce.com") { 
+                console.log(event.data); 
+                } 
+            }, false);
+
+        </script>
+
+    </body>
+</html>
