@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Success Redirector</title>
+    </head>
+    <body>
+        <form id="successForm" method="post" action="#">
+            <input type="text" name="id" value="{{ id|default('') }}">
+            <input type="text" name="brandName" value="{{ brandName|default('') }}">
+            <input type="text" name="sessionId" value="{{ sessionId|default('') }}">
+            <input type="text" name="firstName" value="{{ firstName|default('') }}">
+            <input type="text" name="lastName" value="{{ lastName|default('') }}">
+            <input type="text" name="amount" value="{{ amount|default('') }}">
+            <input type="text" name="reference" value="{{ reference|default('') }}">
+            <input type="text" name="recipientAccountNumber" value="{{ recipientAccountNumber|default('') }}">
+            <input type="text" name="recipientFirstName" value="{{ recipientFirstName|default('') }}">
+            <input type="text" name="recipientLastName" value="{{ recipientLastName|default('') }}">
+            <input type="text" name="jti" value="{{ jti|default('') }}">
+            <input type="text" name="maskedValue" value="{{ maskedValue|default('') }}">
+            <input type="hidden" name="expirationMonth" value="{{ expirationMonth|default('') }}">
+            <input type="text" name="expirationYear" value="{{ expirationYear|default('') }}">
+            <input type="text" name="referenceId" value="{{ referenceId|default('') }}">
+            <input type="text" name="accessToken" value="{{ accessToken|default('') }}">
+            <input type="text" name="deviceDataCollectionUrl" value="{{ deviceDataCollectionUrl|default('') }}">
+        </form>
+        <script>
+            // document.getElementById('successForm').submit();
+        </script>
+    </body>
+</html>

@@ -167,8 +167,72 @@
         }
 
         public function authentication($request, $response, $args){
-            
-            echo json_encode($request->getParams());
+
+            $sessionId = $request->getParam('sessionId');
+            $firstName = $request->getParam('firstName');
+            $lastName = $request->getParam('lastName');
+            $amount = $request->getParam('amount');
+            $reference = $request->getParam('reference');
+            $recipientAccountNumber = $request->getParam('recipientAccountNumber');
+            $recipientFirstName = $request->getParam('recipientFirstName');
+            $recipientLastName = $request->getParam('recipientLastName');
+            $jti = $request->getParam('jti');
+            $maskedValue = $request->getParam('maskedValue');
+            $expirationMonth = $request->getParam('expirationMonth');
+            $expirationYear = $request->getParam('expirationYear');
+            $referenceId = $request->getParam('referenceId');
+            $accessToken = $request->getParam('accessToken');
+            $deviceDataCollectionUrl = $request->getParam('deviceDataCollectionUrl');
+
+            $deviceInfo = [
+                'httpAcceptBrowserValue' => $request->getParam('httpAcceptBrowserValue'),
+                'httpAcceptContent' => $request->getParam('httpAcceptContent'),
+                'httpBrowserEmail' => $request->getParam('httpBrowserEmail'),
+                'httpBrowserLanguage' => $request->getParam('httpBrowserLanguage'),
+                'httpBrowserJavaEnabled' => $request->getParam('httpBrowserJavaEnabled'),
+                'httpBrowserJavaScriptEnabled' => $request->getParam('httpBrowserJavaScriptEnabled'),
+                'httpBrowserColorDepth' => $request->getParam('httpBrowserColorDepth'),
+                'httpBrowserScreenHeight' => $request->getParam('httpBrowserScreenHeight'),
+                'httpBrowserScreenWidth' => $request->getParam('httpBrowserScreenWidth'),
+                'httpBrowserTimeDifference' => $request->getParam('httpBrowserTimeDifference'),
+                'userAgentBrowserValue' => $request->getParam('userAgentBrowserValue'),
+            ];
+
+            $cybersource = new Cybersource();
+            $authentication =  $cybersource->authentication($sessionId, $firstName, $lastName, $amount, $reference, $recipientAccountNumber, $recipientFirstName, $recipientLastName, $jti, $maskedValue, $expirationMonth, $expirationYear, $referenceId, $accessToken, $deviceDataCollectionUrl, $deviceInfo);
+           
+            if($authentication['response']['status'] == 'AUTHORIZED'){
+                $responseData = $authentication['response'];
+                $data = [
+                    'id' => $responseData['id'] ?? null,
+                    'brandName' => $responseData['paymentAccountInformation']['card']['brandName'] ?? null,
+                    'sessionId' => $sessionId,
+                    'firstName' => $firstName,
+                    'lastName' => $lastName,
+                    'amount' => $amount,
+                    'reference' => $reference,
+                    'recipientAccountNumber' => $recipientAccountNumber,
+                    'recipientFirstName' => $recipientFirstName,
+                    'recipientLastName' => $recipientLastName,
+                    'jti' => $jti,
+                    'maskedValue' => $maskedValue,
+                    'expirationMonth' => $expirationMonth,
+                    'expirationYear' => $expirationYear,
+                    'referenceId' => $referenceId,
+                    'accessToken' => $accessToken,
+                    'deviceDataCollectionUrl' => $deviceDataCollectionUrl,
+                ];
+
+                return $this->c->view->render($response, 'successRedirector.html', $data);
+            }
+            else if($authentication['response']['status'] == 'PENDING_AUTHENTICATION'){
+                echo "Pending Authentication, Authentication is still pending";
+            }
+            else {
+                echo $authentication['response']['status'];
+                echo "<br> Failed Charge Attempt";
+            }
+
             
         }
 

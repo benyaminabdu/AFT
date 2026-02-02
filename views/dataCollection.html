@@ -70,13 +70,39 @@
             <input type="hidden" name="referenceId" value="{{ referenceId }}">
             <input type="hidden" name="accessToken" value="{{ accessToken }}">
             <input type="hidden" name="deviceDataCollectionUrl" value="{{ deviceDataCollectionUrl }}">
+            <input type="hidden" name="httpAcceptBrowserValue" id="device_http_accept" value="">
+            <input type="hidden" name="httpAcceptContent" id="device_http_accept_content" value="">
+            <input type="hidden" name="httpBrowserEmail" id="device_http_browser_email" value="">
+            <input type="hidden" name="httpBrowserLanguage" id="device_http_browser_language" value="">
+            <input type="hidden" name="httpBrowserJavaEnabled" id="device_java_enabled" value="">
+            <input type="hidden" name="httpBrowserJavaScriptEnabled" id="device_js_enabled" value="">
+            <input type="hidden" name="httpBrowserColorDepth" id="device_color_depth" value="">
+            <input type="hidden" name="httpBrowserScreenHeight" id="device_screen_height" value="">
+            <input type="hidden" name="httpBrowserScreenWidth" id="device_screen_width" value="">
+            <input type="hidden" name="httpBrowserTimeDifference" id="device_time_diff" value="">
+            <input type="hidden" name="userAgentBrowserValue" id="device_user_agent" value="">
         </form>
         
         <script>
-            
-            window.onload = function() { 
-                var cardinalCollectionForm = document.querySelector('#cardinal_collection_form'); 
-                if(cardinalCollectionForm) // form exists 
+            // Populate device info for Cybersource (Accept headers come from server; these are client-only values)
+            (function() {
+                var set = function(id, value) {
+                    var el = document.getElementById(id);
+                    if (el && value !== undefined && value !== null) el.value = String(value);
+                };
+                set('device_http_browser_language', navigator.language || navigator.userLanguage || '');
+                set('device_java_enabled', navigator.javaEnabled ? navigator.javaEnabled() : false);
+                set('device_js_enabled', true);
+                set('device_color_depth', window.screen && window.screen.colorDepth ? window.screen.colorDepth : '');
+                set('device_screen_height', window.screen && window.screen.height ? window.screen.height : '');
+                set('device_screen_width', window.screen && window.screen.width ? window.screen.width : '');
+                set('device_time_diff', new Date().getTimezoneOffset());
+                set('device_user_agent', navigator.userAgent || '');
+            })();
+
+            window.onload = function() {
+                var cardinalCollectionForm = document.querySelector('#cardinal_collection_form');
+                if(cardinalCollectionForm)
                 cardinalCollectionForm.submit();
             }
 

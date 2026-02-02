@@ -218,6 +218,7 @@
         <div class="container">
             <h1>Payment Acceptor</h1>
             <p class="subtitle">Secure payment processing</p>
+            <p class="subtitle">{{ reference }}</p>
             <div id="errors-output" role="alert"></div>
             
             <form action="{{ path_for('transientToken') }}" id="my-sample-form" method="post">
