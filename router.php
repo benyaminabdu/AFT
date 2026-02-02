@@ -8,6 +8,8 @@
 
     $app->post('/token', AppController::class.':transientToken')->setName('transientToken');
 
+    $app->post('/authentication', AppController::class.':authentication')->setName('authentication');
+
     $app->get('/errorPage', AppController::class.':errorPage')->setName('errorPage');
 
 ?>

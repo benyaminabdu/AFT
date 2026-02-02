@@ -130,6 +130,12 @@
             
         }
 
+        public function authentication($request, $response, $args){
+            
+            echo json_encode($request->getParams());
+            
+        }
+
         public function errorPage($request, $response, $args){
 
             $messages = $this->c->flash->getMessages();

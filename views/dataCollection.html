@@ -4,9 +4,38 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Data Collection</title>
+        <style>
+            #loader_overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(255, 255, 255, 0.95);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+            }
+            #loader_overlay.hidden {
+                display: none;
+            }
+            .loader {
+                width: 48px;
+                height: 48px;
+                border: 4px solid #e0e0e0;
+                border-top-color: #333;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
     </head>
     <body>
-    
+
+        <!-- Centered loader while data collection runs -->
+        <div id="loader_overlay" aria-hidden="true">
+            <div class="loader" role="status" aria-label="Loading"></div>
+        </div>
 
         <!-- iFrame Device Data Collection -->
         <iframe id="cardinal_collection_iframe" name="collectionIframe" height="1" width="1" style="display: none;"></iframe>
@@ -23,6 +52,20 @@
                 value="{{ accessToken }}"
             >
         </form>
+
+        <!-- Hidden form submitted when profile.completed (UI only) -->
+        <form id="profile_completed_form" method="POST" action="{{ path_for('authentication') }}" style="display: none;">
+            <input type="hidden" name="sessionId" id="validate_session_id" value="">
+            <input type="hidden" name="amount" value="{{ amount }}">
+            <input type="hidden" name="reference" value="{{ reference }}">
+            <input type="hidden" name="jti" value="{{ jti }}">
+            <input type="hidden" name="maskedValue" value="{{ maskedValue }}">
+            <input type="hidden" name="expirationMonth" value="{{ expirationMonth }}">
+            <input type="hidden" name="expirationYear" value="{{ expirationYear }}">
+            <input type="hidden" name="referenceId" value="{{ referenceId }}">
+            <input type="hidden" name="accessToken" value="{{ accessToken }}">
+            <input type="hidden" name="deviceDataCollectionUrl" value="{{ deviceDataCollectionUrl }}">
+        </form>
         
         <script>
             
@@ -34,7 +77,20 @@
 
             window.addEventListener("message", function(event) { 
                 if (event.origin === "https://centinelapistag.cardinalcommerce.com") { 
-                console.log(event.data); 
+                    var data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+                    if (data.MessageType === "profile.completed" && data.Status === true) {
+                        var sessionIdInput = document.querySelector('#validate_session_id');
+                        if (sessionIdInput && data.SessionId) {
+                            sessionIdInput.value = data.SessionId;
+                        }
+                        var form = document.querySelector('#profile_completed_form');
+                        var loader = document.getElementById('loader_overlay');
+                        if (loader) loader.classList.add('hidden');
+                        if (form) form.submit();
+                    }
+                    else {
+                        console.log("Device Fingerprint completion failed");
+                    }
                 } 
             }, false);
 
