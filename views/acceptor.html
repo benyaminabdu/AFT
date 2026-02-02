@@ -223,10 +223,19 @@
             <form action="{{ path_for('transientToken') }}" id="my-sample-form" method="post">
                 <input type="hidden" name="amount" value="{{ amount }}">
                 <input type="hidden" name="reference" value="{{ reference }}">
+                <input type="hidden" name="recipientAccountNumber" value="{{ recipientInformation.accountNumber }}">
+                <input type="hidden" name="recipientFirstName" value="{{ recipientInformation.firstName }}">
+                <input type="hidden" name="recipientLastName" value="{{ recipientInformation.lastName }}">
                 
-                <div class="form-group">
-                    <label for="cardholderName">Name</label>
-                    <input id="cardholderName" class="form-control" name="cardholderName" placeholder="Name on the card">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cardholderFirstName">First name</label>
+                        <input id="cardholderFirstName" class="form-control" name="firstName" placeholder="First name">
+                    </div>
+                    <div class="form-group">
+                        <label for="cardholderLastName">Last name</label>
+                        <input id="cardholderLastName" class="form-control" name="lastName" placeholder="Last name">
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -395,15 +404,21 @@
                 errorsOutput.innerHTML = '';
                 
                 // Get form values
-                const cardholderName = document.getElementById('cardholderName').value.trim();
+                const cardholderFirstName = document.getElementById('cardholderFirstName').value.trim();
+                const cardholderLastName = document.getElementById('cardholderLastName').value.trim();
                 const expMonthValue = document.getElementById('expMonth').value;
                 const expYearValue = document.getElementById('expYear').value;
                 
                 // Validate cardholder name
-                if (!cardholderName || cardholderName === '') {
-                    errorsOutput.innerHTML = '<div>Please enter the cardholder name.</div>';
+                if (!cardholderFirstName || cardholderFirstName === '') {
+                    errorsOutput.innerHTML = '<div>Please enter your first name.</div>';
                     return;
                 }
+                if (!cardholderLastName || cardholderLastName === '') {
+                    errorsOutput.innerHTML = '<div>Please enter your last name.</div>';
+                    return;
+                }
+                const cardholderName = cardholderFirstName + ' ' + cardholderLastName;
                 
                 // Validate expiration month
                 const expMonthInt = parseInt(expMonthValue, 10);

@@ -12,8 +12,25 @@
 
         public function acceptor($request, $response, $args){
             
+            if(
+                !empty($request->getParam('amount')) &&
+                !empty($request->getParam('reference')) &&
+                !empty($request->getParam('recipientAccountNumber')) &&
+                !empty($request->getParam('recipientFirstName')) &&
+                !empty($request->getParam('recipientLastName'))
+            ){
+
+            }
+            else {
+                $this->c->flash->addMessage('error', "Not enough Information passed");
+                return $response->withRedirect($this->c->router->pathFor('errorPage'));
+            }
+
             $amount = $request->getParam('amount');
             $reference = $request->getParam('reference');
+            $recipientAccountNumber = $request->getParam('recipientAccountNumber');
+            $recipientFirstName = $request->getParam('recipientFirstName');
+            $recipientLastName = $request->getParam('recipientLastName');
 
             $cybersource = new Cybersource();
             $captureContext = $cybersource->getCaptureContext();
@@ -28,13 +45,18 @@
                     'captureContext' => $jwtToken, // Pass JWT token string to Flex SDK
                     'amount' => $amount, 
                     'reference' => $reference,
+                    'recipientInformation' => array(
+                        'accountNumber' => $recipientAccountNumber,
+                        'firstName' => $recipientFirstName,
+                        'lastName' => $recipientLastName,
+                    ),
                     'clientLibrary' => $clientLibrary,
                     'clientLibraryIntegrity' => $clientLibraryIntegrity
                 ]);
             }
             else {
                 $this->c->flash->addMessage('error', $captureContext['message']);
-                return $response->withRedirect($this->c->router->pathFor('errorPage' . "Capture Context Failed"));
+                return $response->withRedirect($this->c->router->pathFor('errorPage'));
             }
 
         }
@@ -43,7 +65,12 @@
         public function transientToken($request, $response, $args){
             
             $amount = $request->getParam('amount');
+            $firstName = $request->getParam('firstName');
+            $lastName = $request->getParam('lastName');
             $reference = $request->getParam('reference');
+            $recipientAccountNumber = $request->getParam('recipientAccountNumber');
+            $recipientFirstName = $request->getParam('recipientFirstName');
+            $recipientLastName = $request->getParam('recipientLastName');
             $flexResponse = $request->getParam('flexresponse');
             
             if (empty($flexResponse)) {
@@ -93,6 +120,8 @@
                 : null;
             
             $amount = htmlspecialchars($amount);
+            $firstName = htmlspecialchars($firstName);
+            $lastName = htmlspecialchars($lastName);
             $reference = htmlspecialchars($reference);
             $jti = htmlspecialchars($jti);
             $maskedValue = htmlspecialchars($maskedValue);
@@ -111,7 +140,14 @@
 
                 $data = [
                     'amount' => $amount,
+                    'firstName' => $firstName,
+                    'lastName' => $lastName,
                     'reference' => $reference,
+                    'recipientInformation' => array(
+                        'accountNumber' => $recipientAccountNumber,
+                        'firstName' => $recipientFirstName,
+                        'lastName' => $recipientLastName,
+                    ),
                     'jti' => $jti,
                     'maskedValue' => $maskedValue,
                     'expirationMonth' => $expirationMonth,
