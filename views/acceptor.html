@@ -61,6 +61,34 @@
                 font-size: 14px;
             }
 
+            .amount-display {
+                text-align: center;
+                margin: 24px 0 32px;
+                padding: 20px 24px;
+                background: #f8f9fa;
+                border: 1px solid #e9ecef;
+                border-radius: 12px;
+                letter-spacing: 0.02em;
+            }
+
+            .amount-display .amount-label {
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                color: #6c757d;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 6px;
+            }
+
+            .amount-display .amount-value {
+                font-size: 28px;
+                font-weight: 700;
+                color: #000000;
+                font-variant-numeric: tabular-nums;
+                line-height: 1.2;
+            }
+
             #errors-output {
                 margin-bottom: 24px;
                 min-height: 24px;
@@ -218,6 +246,9 @@
         <div class="container">
             <h1>Payment Acceptor</h1>
             <p class="subtitle">Secure payment processing</p>
+            <div class="amount-display">
+                <span class="amount-value">${{ amount }}</span>
+            </div>
             <p class="subtitle">{{ reference }}</p>
             <div id="errors-output" role="alert"></div>
             

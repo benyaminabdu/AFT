@@ -201,6 +201,23 @@
             $cybersource = new Cybersource();
             $authentication =  $cybersource->authentication($sessionId, $firstName, $lastName, $amount, $reference, $recipientAccountNumber, $recipientFirstName, $recipientLastName, $jti, $maskedValue, $expirationMonth, $expirationYear, $referenceId, $accessToken, $deviceDataCollectionUrl, $deviceInfo);
            
+            // Store important payment/transaction data in session (for success, error, or post-3DS flows)
+            $_SESSION['sessionId'] = $sessionId;
+            $_SESSION['firstName'] = $firstName;
+            $_SESSION['lastName'] = $lastName;
+            $_SESSION['amount'] = $amount;
+            $_SESSION['reference'] = $reference;
+            $_SESSION['recipientAccountNumber'] = $recipientAccountNumber;
+            $_SESSION['recipientFirstName'] = $recipientFirstName;
+            $_SESSION['recipientLastName'] = $recipientLastName;
+            $_SESSION['jti'] = $jti;
+            $_SESSION['referenceId'] = $referenceId;
+            $_SESSION['accessToken'] = $accessToken;
+            $_SESSION['maskedValue'] = $maskedValue;
+            $_SESSION['expirationMonth'] = $expirationMonth;
+            $_SESSION['expirationYear'] = $expirationYear;
+            $_SESSION['deviceDataCollectionUrl'] = $deviceDataCollectionUrl;
+
             if($authentication['response']['status'] == 'AUTHORIZED'){
                 $responseData = $authentication['response'];
                 $data = [
@@ -226,7 +243,48 @@
                 return $this->c->view->render($response, 'successRedirector.html', $data);
             }
             else if($authentication['response']['status'] == 'PENDING_AUTHENTICATION'){
-                echo "Pending Authentication, Authentication is still pending";
+                $responseData = $authentication['response'];
+                $consumerAuth = $responseData['consumerAuthenticationInformation'] ?? [];
+                $stepUpUrl = $consumerAuth['stepUpUrl'] ?? null;
+                $pareq = $consumerAuth['pareq'] ?? null;
+                $challengeAccessToken = $consumerAuth['accessToken'] ?? null;
+
+                $pareqPayload = null;
+                if ($pareq) {
+                    $base64 = strtr($pareq, '-_', '+/');
+                    $decoded = base64_decode($base64, true);
+                    if ($decoded !== false) {
+                        $pareqPayload = json_decode($decoded, true) ?: [];
+                    }
+                }
+                $pareqPayload = $pareqPayload ?? [];
+
+                $challengeWindowSize = $pareqPayload['challengeWindowSize'] ?? '02';
+                $challengeDimensions = [
+                    '01' => ['width' => 250, 'height' => 400],
+                    '02' => ['width' => 390, 'height' => 400],
+                    '03' => ['width' => 500, 'height' => 600],
+                    '04' => ['width' => 600, 'height' => 400],
+                    '05' => ['width' => '100%', 'height' => '100%'],
+                ];
+                $dims = $challengeDimensions[$challengeWindowSize] ?? $challengeDimensions['02'];
+                $challengeWidth = $dims['width'];
+                $challengeHeight = $dims['height'];
+
+                $data = [
+                    'stepUpUrl' => $stepUpUrl,
+                    'pareq' => $pareq,
+                    'challengeAccessToken' => $challengeAccessToken,
+                    'pareqMessageType' => $pareqPayload['messageType'] ?? null,
+                    'pareqMessageVersion' => $pareqPayload['messageVersion'] ?? null,
+                    'pareqThreeDSServerTransID' => $pareqPayload['threeDSServerTransID'] ?? null,
+                    'pareqAcsTransID' => $pareqPayload['acsTransID'] ?? null,
+                    'pareqChallengeWindowSize' => $pareqPayload['challengeWindowSize'] ?? null,
+                    'challengeWidth' => $challengeWidth,
+                    'challengeHeight' => $challengeHeight,
+                ];
+
+                return $this->c->view->render($response, 'pendingAuthentication.html', $data);
             }
             else {
                 echo $authentication['response']['status'];
