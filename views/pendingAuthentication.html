@@ -22,12 +22,38 @@
         </form>
 
         <script>
-            window.onload = function() { 
+            var REDIRECT_TRIGGER_URL_KEYWORD = 'webhook.site';
+            
+            function onRedirectTrigger() {
+                console.log('Redirect trigger: iframe matched or postMessage received');
+            }
+
+            window.onload = function() {
                 var stepUpForm = document.querySelector('#step-up-form');
-                if(stepUpForm) {
+                if (stepUpForm) {
                     stepUpForm.submit();
                 }
-            }
+
+                var iframe = document.querySelector('iframe[name="step-up-iframe"]');
+                if (iframe) {
+                    iframe.addEventListener('load', function() {
+                        try {
+                            var href = iframe.contentWindow.location.href;
+                            if (href && href.indexOf(REDIRECT_TRIGGER_URL_KEYWORD) !== -1) {
+                                onRedirectTrigger();
+                            }
+                        } catch (e) {
+                            // Cross-origin: cannot read iframe URL. Use postMessage from the page inside the iframe.
+                        }
+                    });
+                }
+
+                window.addEventListener('message', function(e) {
+                    if (e.data && (e.data.type === 'REDIRECT_BACK' || e.data.redirectBack === true)) {
+                        onRedirectTrigger();
+                    }
+                });
+            };
         </script>
 
     </body>

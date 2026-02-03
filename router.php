@@ -10,7 +10,7 @@
 
     $app->post('/authentication', AppController::class.':authentication')->setName('authentication');
 
-    $app->post('/postChallenge', AppController::class.':postChallenge')->setName('postChallenge');
+    $app->get('/postChallenge', AppController::class.':postChallenge')->setName('postChallenge');
 
     $app->post('/success', AppController::class.':success')->setName('success');
 

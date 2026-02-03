@@ -217,6 +217,7 @@
             $_SESSION['expirationMonth'] = $expirationMonth;
             $_SESSION['expirationYear'] = $expirationYear;
             $_SESSION['deviceDataCollectionUrl'] = $deviceDataCollectionUrl;
+            $_SESSION['deviceInfo'] = $deviceInfo;
 
             if($authentication['response']['status'] == 'AUTHORIZED'){
                 $responseData = $authentication['response'];
@@ -290,8 +291,82 @@
                 echo $authentication['response']['status'];
                 echo "<br> Failed Charge Attempt";
             }
-
             
+        }
+
+        public function postChallenge($request, $response, $args){
+
+            // $transactionID = $request->getParam('TransactionId');
+
+            $transactionID = "c1O0CFUhURuufGJWkAt0";
+            $sessionId = $_SESSION['sessionId'] ?? null;
+            $firstName = $_SESSION['firstName'] ?? null;
+            $lastName = $_SESSION['lastName'] ?? null;
+            $amount = $_SESSION['amount'] ?? null;
+            $reference = $_SESSION['reference'] ?? null;
+            $recipientAccountNumber = $_SESSION['recipientAccountNumber'] ?? null;
+            $recipientFirstName = $_SESSION['recipientFirstName'] ?? null;
+            $recipientLastName = $_SESSION['recipientLastName'] ?? null;
+            $jti = $_SESSION['jti'] ?? null;
+            $referenceId = $_SESSION['referenceId'] ?? null;
+            $accessToken = $_SESSION['accessToken'] ?? null;
+            $maskedValue = $_SESSION['maskedValue'] ?? null;
+            $expirationMonth = $_SESSION['expirationMonth'] ?? null;
+            $expirationYear = $_SESSION['expirationYear'] ?? null;
+            $deviceDataCollectionUrl = $_SESSION['deviceDataCollectionUrl'] ?? null;
+            $deviceInfo = $_SESSION['deviceInfo'] ?? null;
+
+            $deviceInfo = [
+                'httpAcceptBrowserValue' => $request->getParam('httpAcceptBrowserValue'),
+                'httpAcceptContent' => $request->getParam('httpAcceptContent'),
+                'httpBrowserEmail' => $request->getParam('httpBrowserEmail'),
+                'httpBrowserLanguage' => $request->getParam('httpBrowserLanguage'),
+                'httpBrowserJavaEnabled' => $request->getParam('httpBrowserJavaEnabled'),
+                'httpBrowserJavaScriptEnabled' => $request->getParam('httpBrowserJavaScriptEnabled'),
+                'httpBrowserColorDepth' => $request->getParam('httpBrowserColorDepth'),
+                'httpBrowserScreenHeight' => $request->getParam('httpBrowserScreenHeight'),
+                'httpBrowserScreenWidth' => $request->getParam('httpBrowserScreenWidth'),
+                'httpBrowserTimeDifference' => $request->getParam('httpBrowserTimeDifference'),
+                'userAgentBrowserValue' => $request->getParam('userAgentBrowserValue'),
+            ];
+
+            $cybersource = new Cybersource();
+            $postAuthentication = $cybersource->postAuthentication($transactionID, $sessionId, $firstName, $lastName, $amount, $reference, $recipientAccountNumber, $recipientFirstName, $recipientLastName, $jti, $maskedValue, $expirationMonth, $expirationYear, $referenceId, $accessToken, $deviceDataCollectionUrl, $deviceInfo);
+
+            if ($postAuthentication['status'] == 'success') {
+                
+                $responseData = $postAuthentication['response'] ?? [];
+                $id = $responseData['id'] ?? null;
+                $brandName = $responseData['paymentAccountInformation']['card']['brandName'] ?? null;
+                
+                $data = [
+                    'id' => $id,
+                    'brandName' => $brandName,
+                    'sessionId' => $sessionId,
+                    'firstName' => $firstName,
+                    'lastName' => $lastName,
+                    'amount' => $amount,
+                    'reference' => $reference,
+                    'recipientAccountNumber' => $recipientAccountNumber,
+                    'recipientFirstName' => $recipientFirstName,
+                    'recipientLastName' => $recipientLastName,
+                    'jti' => $jti,
+                    'maskedValue' => $maskedValue,
+                    'expirationMonth' => $expirationMonth,
+                    'expirationYear' => $expirationYear,
+                    'referenceId' => $referenceId,
+                    'accessToken' => $accessToken,
+                    'deviceDataCollectionUrl' => $deviceDataCollectionUrl,
+                ];
+
+                return $this->c->view->render($response, 'successRedirector.html', $data);
+
+            }
+            else {
+                echo $postAuthentication['response']['status'];
+                echo "<br> Failed Charge Attempt";
+            }
+
         }
 
         public function errorPage($request, $response, $args){
