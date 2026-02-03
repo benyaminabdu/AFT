@@ -350,7 +350,7 @@
                 ],
                 'consumerAuthenticationInformation' => [
                     'deviceChannel' => 'Browser',
-                    'returnUrl' => 'https://webhook.site/24128ace-5af5-4cb9-a240-7b31c1dcacb1',
+                    'returnUrl' => 'http://localhost/AFT/postChallenge',
                     'referenceId' => '3f6d2df2-0701-4d6f-984c-b9b6e5c933f0'
                 ],
                 'merchantDefinedInformation' => [

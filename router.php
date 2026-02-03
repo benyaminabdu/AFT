@@ -10,6 +10,8 @@
 
     $app->post('/authentication', AppController::class.':authentication')->setName('authentication');
 
+    $app->post('/postChallenge', AppController::class.':postChallenge')->setName('postChallenge');
+
     $app->post('/success', AppController::class.':success')->setName('success');
 
     $app->get('/errorPage', AppController::class.':errorPage')->setName('errorPage');
